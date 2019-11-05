@@ -3,6 +3,8 @@ package com.scbtest.bookstore.api;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +26,7 @@ import com.scbtest.bookstore.service.UserService;
 public class UserController {
 	
 	private final UserService userService;
-	private User user = null;
+	private final String SESSION_USER_ATTR = "user"; 
 	
 	@Autowired
 	public UserController(UserService userService) {
@@ -32,11 +34,11 @@ public class UserController {
 	}
 	
 	@PostMapping("/login")
-	public ResponseEntity<Object> loginUser(@RequestBody LoginRequest loginRequest) {
-				
-		user = userService.getUser(loginRequest);
+	public ResponseEntity<Object> loginUser(@RequestBody LoginRequest loginRequest,  HttpSession session) {
 		
+		User user = userService.getUser(loginRequest);
 		if(user != null) {
+			session.setAttribute(SESSION_USER_ATTR, user); 
 			return new ResponseEntity<Object>(HttpStatus.OK);
 		}else {
 			return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
@@ -44,18 +46,24 @@ public class UserController {
 	}
 	
 	@GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getUser() {
-		GetUserResponse response = new GetUserResponse();
-		response.setName(user.getName());
-		response.setSurname(user.getSurname());
+	public ResponseEntity<Object> getUser(HttpSession session) {
+		User user = (User) session.getAttribute(SESSION_USER_ATTR);
 		
-		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-		response.setDate_of_birth(dateFormat.format(user.getDate_of_birth()));
-		
-		return new ResponseEntity<Object>(response, HttpStatus.OK);
+		if(user != null) {
+			GetUserResponse response = new GetUserResponse();
+			response.setName(user.getName());
+			response.setSurname(user.getSurname());
+			
+			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			response.setDate_of_birth(dateFormat.format(user.getDate_of_birth()));
+			
+			return new ResponseEntity<Object>(response, HttpStatus.OK);
+		}else {
+			return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
+		}
 	}
 	
-	@PostMapping("/")
+	@PostMapping("/addUser")
 	public ResponseEntity<Object> addUser(@RequestBody AddUserRequest addUserRequest) {
 		if(addUserRequest.getUsername() != null)
 		{
