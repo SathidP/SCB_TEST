@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.scbtest.bookstore.dao.UserDao;
-import com.scbtest.bookstore.model.AppUserProperties;
 import com.scbtest.bookstore.model.User;
+import com.scbtest.bookstore.model.properties.AppUserProperties;
 import com.scbtest.bookstore.model.requests.LoginRequest;
 
 @Service
@@ -18,7 +18,7 @@ public class UserService {
 	
 	@Autowired
 	private AppUserProperties appProperties;
-	
+
 	@Autowired
 	public UserService(UserDao userDao) {
 		this.userDao = userDao;
@@ -47,6 +47,24 @@ public class UserService {
 		catch(Exception e) {
 			LOGGER.error(e.getMessage());
 			return null;
+		}
+	}
+	
+	public boolean deleteUserByUserId(int userId) {
+		try {
+			userDao.deleteUserById(userId);
+			return true;
+		}catch(Exception e) {
+			LOGGER.error(String.format("Delete user by ID error, User ID : %d, %s", userId, e.getMessage()));
+			return false;
+		}
+	}
+	
+	public boolean isExistUsername(String username) {
+		if(userDao.countUserByUsername(username).get(0) > 0) {
+			return true;
+		}else {
+			return false;
 		}
 	}
 }

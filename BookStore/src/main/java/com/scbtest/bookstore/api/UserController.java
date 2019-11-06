@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,18 +21,24 @@ import com.scbtest.bookstore.model.User;
 import com.scbtest.bookstore.model.requests.AddUserRequest;
 import com.scbtest.bookstore.model.requests.LoginRequest;
 import com.scbtest.bookstore.model.responses.GetUserResponse;
+import com.scbtest.bookstore.service.OrderService;
 import com.scbtest.bookstore.service.UserService;
 
 @RestController
 @RequestMapping("/")
 public class UserController {
 	
+	public static final String SESSION_USER_ATTR = "user"; 
+	
 	private final UserService userService;
-	private final String SESSION_USER_ATTR = "user"; 
+	private final OrderService orderService;
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
 	
 	@Autowired
-	public UserController(UserService userService) {
+	public UserController(UserService userService, OrderService orderService) {
 		this.userService = userService;
+		this.orderService = orderService;
 	}
 	
 	@PostMapping("/login")
@@ -63,10 +71,22 @@ public class UserController {
 		}
 	}
 	
-	@PostMapping("/addUser")
+	@PostMapping("/users")
 	public ResponseEntity<Object> addUser(@RequestBody AddUserRequest addUserRequest) {
 		if(addUserRequest.getUsername() != null)
 		{
+			
+			boolean isExistUser = true;
+			try {
+				isExistUser = userService.isExistUsername(addUserRequest.getUsername());
+			}catch(Exception e) {
+				LOGGER.error(String.format("Error checking username, Username : %s, %s", addUserRequest.getUsername(), e.getMessage()));
+			}
+			
+			if(isExistUser) {
+				return new ResponseEntity<Object>("Username is already exist.", HttpStatus.BAD_REQUEST);
+			}
+			
 			User user = new User();
 			user.setUsername(addUserRequest.getUsername());
 			
@@ -93,7 +113,26 @@ public class UserController {
 			return new ResponseEntity<Object>(HttpStatus.OK);
 		}
 		else {
-			return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<Object>("Username is required.", HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PostMapping("/users/delete")
+	public ResponseEntity<Object> deleteUser(HttpSession session) {
+		User user = (User) session.getAttribute(SESSION_USER_ATTR);
+		
+		if(user == null) {
+			return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED); 
+		}
+		
+		if(orderService.deleteOrdersByUserId(user.getUser_id())) {
+			if(userService.deleteUserByUserId(user.getUser_id())) {
+				return new ResponseEntity<Object>(HttpStatus.OK); 
+			}else {
+				return new ResponseEntity<Object>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}else {
+			return new ResponseEntity<Object>(HttpStatus.INTERNAL_SERVER_ERROR); 
 		}
 	}
 }

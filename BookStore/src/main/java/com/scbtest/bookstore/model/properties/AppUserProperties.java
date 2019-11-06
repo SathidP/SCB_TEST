@@ -1,4 +1,4 @@
-package com.scbtest.bookstore.model;
+package com.scbtest.bookstore.model.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

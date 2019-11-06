@@ -28,11 +28,21 @@ public interface UserDao extends CrudRepository<User, Integer> {
 					+ "VALUES (:name,:surname,:username,AES_ENCRYPT(:password,:key),:key)", nativeQuery = true)
     @Transactional
 	public int insertUser(@Param("name") String name, @Param("surname") String surname, @Param("username") String username, @Param("password") String password, @Param("key") String key);
+		
+	@Modifying
+	@Query(value = "delete from USERS where user_id = :user_id", nativeQuery = true)
+    @Transactional
+	public int deleteUserById(@Param("user_id") int user_id);
 	
 	
 	@Query(value = "select user_id, name, surname, username,  date_of_birth "
 			+ "from USERS where username = :username and  AES_DECRYPT(password, password_key) = :password", nativeQuery = true)
-	public List<User> queryUserByUsername(@Param("username") String username,  @Param("password") String password); 
+	public List<User> queryUserByUsernamePassword(@Param("username") String username,  @Param("password") String password); 
+	
+	@Query(value = "select count(user_id)"
+			+ "from USERS where username = :username", nativeQuery = true)
+	public List<Integer> countUserByUsername(@Param("username") String username); 
+	
 	
 	default int addUser(User user, String password) {
 		String key = randomKey();
@@ -57,7 +67,7 @@ public interface UserDao extends CrudRepository<User, Integer> {
 	}
 	
 	default User getUserByUsername(String username, String password) {
-		List<User> userResult = queryUserByUsername(username, password);
+		List<User> userResult = queryUserByUsernamePassword(username, password);
 		if(userResult.size() > 0) {
 			return userResult.get(0);
 		}else {
