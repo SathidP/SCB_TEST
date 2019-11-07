@@ -10,12 +10,12 @@
     </appender>
  
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>${LOG_LOCATION}/mylog.log</File>
+        <File>${LOG_LOCATION}/scb_bookstore.log</File>
         <encoder>
              <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level - %logger{36} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_LOCATION}/archived/mylog-%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>${LOG_LOCATION}/archived/scb_bookstore-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                 class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
