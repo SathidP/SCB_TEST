@@ -1,9 +1,12 @@
 package com.scbtest.bookstore.model.responses;
 
+import java.util.List;
+
 public class GetUserResponse {
 	private String name;
 	private String surname;
 	private String date_of_birth;
+	private List<Integer> books;
 	
 	public String getName() {
 		return name;
@@ -22,5 +25,11 @@ public class GetUserResponse {
 	}
 	public void setDate_of_birth(String date_of_birth) {
 		this.date_of_birth = date_of_birth;
+	}
+	public List<Integer> getBooks() {
+		return books;
+	}
+	public void setBooks(List<Integer> books) {
+		this.books = books;
 	}
 }

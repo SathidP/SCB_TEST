@@ -60,10 +60,16 @@ public class UserController {
 		if(user != null) {
 			GetUserResponse response = new GetUserResponse();
 			response.setName(user.getName());
-			response.setSurname(user.getSurname());
-			
+			response.setSurname(user.getSurname());			
 			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 			response.setDate_of_birth(dateFormat.format(user.getDate_of_birth()));
+			
+			try {
+				response.setBooks(orderService.getBookIdListByUserId(user.getUser_id()));
+			}catch(Exception e) {
+				LOGGER.error(String.format("Getting books by user ID error, User ID : %d, %s", user.getUser_id(), e.getMessage()));
+				return new ResponseEntity<Object>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			
 			return new ResponseEntity<Object>(response, HttpStatus.OK);
 		}else {
